@@ -15,3 +15,11 @@ export interface CommonResponse {
     error : any,
     message : String
 }
+
+export interface CreateTheaterRequest {
+    name : String
+    description : String,
+    city :String
+    pincode : Number
+    address : String
+}

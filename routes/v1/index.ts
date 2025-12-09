@@ -1,8 +1,10 @@
 import {Router} from 'express'
 import movieRoutes from './movie.routes'
+import theaterRoutes from './theater.routes'
 
 const router = Router()
 
-router.use('movies', movieRoutes);
+router.use('/movies', movieRoutes);
+router.use('/theaters', theaterRoutes)
 
 export default router

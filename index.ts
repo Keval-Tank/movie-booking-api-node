@@ -1,11 +1,14 @@
 import express from 'express'
 import mongoose from 'mongoose'
+import apiRoutes from './routes'
 
 const app = express()
 const PORT = process.env.PORT
 
 app.use(express.json())
 app.use(express.urlencoded({extended : true}))
+
+app.use('/api', apiRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server running on ${PORT}`)
