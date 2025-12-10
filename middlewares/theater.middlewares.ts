@@ -20,3 +20,12 @@ export const validateCreateTheaterRequest = (req : Request, res : Response, next
     }
     next();
 }
+
+export const validateUpdateMovieRequest = (req : Request, res : Response, next : NextFunction) => {
+    if(!req.body.movieIds){
+        responses.ErrorResponse.error = {explanation : "movie ids property is not provided"}
+        responses.ErrorResponse.message = "movie ids field not provided"
+        return res.status(StatusCodes.BAD_REQUEST).json(responses.ErrorResponse)
+    }
+    next()
+}

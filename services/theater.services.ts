@@ -34,9 +34,27 @@ async function getTheater(id : string){
 }
 
 // get all theaters
-async function getAllTheaters(){
+async function getAllTheaters(data : any){
     try{
-        const result = await models.Theater.find()
+        const query : any = {}
+        const pagination : any = {}
+        if(data && data.city){
+            query.city = data.city
+        }
+        if(data && data.pincode){
+            query.pincode = data.pincode
+        }
+        if(data && data.name){
+            query.name = data.name
+        }
+        if(data && data.limit){
+            pagination.limit = data.limit
+        }
+        if(data && data.skip){
+            let perPage = (data.limit) ? data.limit : 1;
+            pagination.skip = data.skip * perPage
+        }
+        const result = await models.Theater.find(query , {}, pagination)
         return result;
     }catch(err : any){
        throw new AppError(err.message || "Failed to fetch theaters", err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)  
@@ -58,9 +76,52 @@ async function deleteTheater(id : string){
     }
 }
 
+// update movies in a theater
+async function updateMoviesInATheater(theaterId : string, movieIds : [string], insert : boolean) {
+    const theater = await models.Theater.findById(theaterId);
+    if(!theater){
+        throw new AppError("Failed to find theater with id", StatusCodes.NOT_FOUND);
+    }
+    if(insert){
+        movieIds.forEach(movieId => {
+           if(!theater.movies.find((id) => id == movieId)){
+             theater.movies.push(movieId);
+           }
+        })
+    }else{
+        let theater_movies = theater.movies;
+        movieIds.forEach(movieId => {
+            theater_movies = theater_movies.filter( id => id != movieId)
+        });
+        theater.movies = theater_movies;
+    }
+    await theater.save();
+    return theater.populate('movies')
+}
+
+
+// update a theater
+async function updateTheater(id : string, data : Partial<CreateTheaterRequest>){
+   try{
+     const result = await models.Theater.findByIdAndUpdate(id, data, {new : true, runValidators : true});
+     return result
+   }catch(err : any){
+     if(err.name === "ValidationError"){
+        const errs = []
+        Object.values(err.errors).map(e => errs.push(e.properties.message))
+        throw {explanation : errs, statusCode : StatusCodes.BAD_REQUEST}
+     }
+     throw new AppError(err.message || "Failed to update theater", err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)  
+   }
+}
+
+
+
 export default {
     createTheater,
     getTheater,
     getAllTheaters,
-    deleteTheater
+    deleteTheater,
+    updateMoviesInATheater,
+    updateTheater
 }

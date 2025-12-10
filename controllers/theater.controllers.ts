@@ -3,6 +3,7 @@ import {type Request, type Response} from 'express'
 import responses from '../utils/common'
 import { StatusCodes } from "http-status-codes";
 import type { CreateTheaterRequest } from "../utils/types";
+import theater from "../models/theater.model";
 
 const createTheater = async(req : Request, res : Response) => {
     try{
@@ -39,7 +40,23 @@ const getTheater = async(req : Request, res : Response) => {
 
 const getAllTheaters = async(req : Request, res : Response) => {
     try{
-        const result = await services.TheaterService.getAllTheaters();
+        const query_data : any = {}
+        if(req.query.city){
+            query_data.city = req.query.city
+        }
+        if(req.query.name){
+            query_data.name = req.query.name
+        }
+        if(req.query.pincode){
+            query_data.pincode = req.query.pincode
+        }
+        if(req.query.limit){
+            query_data.limit = req.query.limit
+        }
+        if(req.query.skip){
+            query_data.skip = req.query.skip
+        }
+        const result = await services.TheaterService.getAllTheaters(query_data);
         responses.SuccessResponse.data = result;
         responses.SuccessResponse.message = "Theaters fetched successfully"
         return res.status(StatusCodes.OK).json(responses.SuccessResponse)
@@ -63,10 +80,43 @@ const deleteTheaters = async(req : Request, res : Response) => {
     }
 }
 
+const updateMoviesInTheater = async(req : Request, res : Response) => {
+    try{
+        const data = {
+            theaterId : req.params.id!,
+            movieIds : req.body.movieIds.split(','),
+            insert : Boolean(req.body.insert)
+        }
+        const result = await services.TheaterService.updateMoviesInATheater(data.theaterId, data.movieIds, data.insert);
+        responses.SuccessResponse.data = result;
+        responses.SuccessResponse.message = "Updated Successfully"
+        return res.status(StatusCodes.OK).json(responses.SuccessResponse)
+    }catch(err : any){
+        responses.ErrorResponse.error = err;
+        responses.ErrorResponse.message = err.message || "Failed to update theater"
+        return res.status(err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json(responses.ErrorResponse)
+    }
+}
+
+const updateTheater = async(req : Request, res : Response) => {
+    try{
+        const result = await services.TheaterService.updateTheater(req.params.id!, req.body);
+        responses.SuccessResponse.data = result;
+        responses.SuccessResponse.message = "Updated Successfully"
+        return res.status(StatusCodes.OK).json(responses.SuccessResponse)
+    }catch(err : any){
+        responses.ErrorResponse.error = err;
+        responses.ErrorResponse.message = err.message || "Failed to update theater"
+        return res.status(err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json(responses.ErrorResponse)
+    }
+}
+
 
 export default {
     createTheater,
     getTheater,
     getAllTheaters,
-    deleteTheaters
+    deleteTheaters,
+    updateMoviesInTheater,
+    updateTheater
 }
